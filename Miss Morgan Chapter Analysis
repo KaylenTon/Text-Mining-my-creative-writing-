@@ -1,0 +1,28 @@
+library(tidyverse)
+library(tm)
+library(qdap)
+library(ggplot2)
+
+MissMorgan <- read.csv("chaptertext.csv")
+
+clean_corpus <- function(corpus) {
+  corpus <- corpus %>%
+    tm_map(removePunctuation) %>% 
+    tm_map(content_transformer(tolower)) %>% 
+    tm_map(content_transformer(replace_abbreviation)) %>% 
+    tm_map(removeNumbers) %>% 
+    tm_map(removeWords, words = c(stopwords("en"), "koffee", "terry", "morgan")) %>% 
+    tm_map(stripWhitespace)
+  return(corpus)
+}
+
+myEar <- MissMorgan %>% 
+  filter(ACT == 1, CHAPTER.TITLE == "My Ear") %>% 
+  select(TEXT) %>% 
+  VectorSource() %>% 
+  VCorpus() %>% 
+  clean_corpus() %>% 
+  TermDocumentMatrix() %>% 
+  as.matrix()
+
+head(myEar, 10)
